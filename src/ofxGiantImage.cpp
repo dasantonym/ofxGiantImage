@@ -34,36 +34,37 @@ void ofxGiantImage::loadImage(string filePath){
     // load into a big image
     ofImage * img = new ofImage();
     img->setUseTexture(false);
-    if(!img->loadImage(filePath)){
+    if(!img->load(filePath)){
         cout << "I couldn't load the image from path: "<<filePath<<endl;
         return;
     }
-    if(!(img->type == OF_IMAGE_COLOR)){
+    if(!(img->getImageType() == OF_IMAGE_COLOR)){
         cout << "WARNING the ofxTile can only display 3 channel color images now! "<<endl;
         return;
     }
     
-    width = img->width;
-    height = img->height;
+    width = img->getWidth();
+    height = img->getHeight();
     cout << "Loaded source image of "<<width<<" by "<<height<<" pixels"<<endl;
     wtiles = (int) ceilf(width/(float)tileSize);
     htiles = (int) ceilf(height/(float)tileSize);
     
     // in the special and stupid case that you load a source image that is smaller than the size of a tile just use the source image.
     if( width < tileSize ||  height < tileSize){
-        unsigned char * imgpix = img->getPixels();
-        unsigned char tilepix[3*img->width*img->height];
+        ofPixels imgpix = img->getPixels();
+        //unsigned char * imgpix = img->getTexture();
+        unsigned char tilepix[3*(int)img->getWidth()*(int)img->getHeight()];
         ofTexture * tile = new ofTexture();
-        tile->allocate(img->width, img->height, GL_RGB);
-        tile->loadData(tilepix, img->width, img->height, GL_RGB);
+        tile->allocate(img->getWidth(), img->getHeight(), GL_RGB);
+        tile->loadData(tilepix, img->getWidth(), img->getHeight(), GL_RGB);
         tiles.push_back(tile);
         img->clear();
         delete img;
         ofEnableTextureEdgeHack();
         return;
     }
-    
-    unsigned char * imgpix = img->getPixels();
+
+    ofPixels imgpix = img->getPixels();
 	unsigned char tilepix[3*tileSize*tileSize];
     
     // now start making tiles!
@@ -83,7 +84,7 @@ void ofxGiantImage::loadImage(string filePath){
             // copy pixels into tilepix row by row
             for (int iy = 0; iy < tileHeight; iy++) {
                 memcpy(&(tilepix[3 * (iy * tileWidth)]),
-                       &(imgpix[3 * ( x1 + (y1+iy)*img->width)]),
+                       &(imgpix[3 * ( x1 + (y1+iy)*img->getWidth())]),
                        3 * tileSize * sizeof(unsigned char));
             }
             
